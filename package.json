@@ -1,0 +1,90 @@
+{
+  "name": "@testament/node-client",
+  "version": "0.0.1",
+  "description": "Node.js client for Testament API",
+  "author": "jlazarre95 <jlazarre95@gmail.com>",
+  "license": "ISC",
+  "main": "dist/index.js",
+  "types": "./dist/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/testament-team/testament-node-client.git"
+  },
+  "files": [
+    "bin/**/*",
+    "dist/**/*"
+  ],
+  "keywords": [
+    "testament",
+    "node",
+    "client"
+  ],
+  "scripts": {
+    "start": "node dist/src/main.js",
+    "start:debug": "node --inspect-brk dist/src/main.js",
+    "build": "rimraf dist && ttsc -p tsconfig.build.json",
+    "build:watch": "npm run build && concurrently \"cpx resources/**/* dist/resources -w\" \"ttsc -w -p tsconfig.build.json\"",
+    "test": "mocha",
+    "test:debug": "mocha --inspect-brk",
+    "test:cov": "nyc mocha",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm test",
+    "version": "git add -A",
+    "postversion": "git push && git push --tags"
+  },
+  "nyc": {
+    "extends": "@istanbuljs/nyc-config-typescript",
+    "all": true,
+    "require": [
+      "ts-node/register/transpile-only"
+    ],
+    "exclude": [
+      "**/*.d.ts",
+      "**/*.spec.ts",
+      "src/main.ts",
+      "coverage",
+      "bin"
+    ],
+    "reporter": [
+      "text",
+      "html"
+    ]
+  },
+  "bugs": {
+    "url": "https://github.com/testament-team/testament-node-client/issues"
+  },
+  "homepage": "https://github.com/testament-team/testament-node-client#readme",
+  "dependencies": {
+    "@testament/core-service": "^0.1.1",
+    "axios": "^0.20.0",
+    "chai-as-promised": "^7.1.1",
+    "class-transformer": "^0.2.3",
+    "class-validator": "^0.10.2",
+    "fs-extra": "^8.1.0",
+    "pluralize": "^8.0.0",
+    "reflect-metadata": "^0.1.13",
+    "simple-git": "^1.126.0",
+    "uuid": "^3.3.3",
+    "winston": "^3.2.1"
+  },
+  "devDependencies": {
+    "@istanbuljs/nyc-config-typescript": "^0.1.3",
+    "@types/chai": "^4.2.3",
+    "@types/chai-as-promised": "^7.1.2",
+    "@types/fs-extra": "^8.0.0",
+    "@types/node": "^12.7.4",
+    "@types/uuid": "^3.4.5",
+    "chai": "^4.2.0",
+    "concurrently": "^5.0.0",
+    "mocha": "^6.2.0",
+    "mocha-typescript": "^1.1.17",
+    "nyc": "^14.1.1",
+    "rimraf": "^3.0.0",
+    "ts-mockito": "^2.5.0",
+    "ts-node": "^8.4.1",
+    "tsconfig-paths": "^3.9.0",
+    "ttypescript": "^1.5.7",
+    "typescript": "^3.6.3",
+    "typescript-transform-paths": "^1.1.11"
+  }
+}

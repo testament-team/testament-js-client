@@ -1,8 +1,8 @@
-import { Access, AddBlueprintAppDTO, AddBlueprintAssertionRuleDTO, AddBlueprintCorrelationRuleDTO, AddBlueprintFileRuleDTO, AddBlueprintParameterRuleDTO, AddBlueprintRunConfigurationDTO, AddBlueprintUserDTO, Application, AssertionRule, Blueprint, CorrelationRule, CorrelationRuleScope, CorrelationRuleType, CreateApplicationDTO, CreateBlueprintDTO, CreateEnvironmentDTO, CreateNamespaceDTO, Environment, FileRule, FileType, ModificationType, Namespace, ParameterRule, ParameterRuleType, RepositoryType, RunConfiguration, SimulationType, UpdateApplicationDTO, UpdateBlueprintAssertionRuleDTO, UpdateBlueprintCorrelationRuleDTO, UpdateBlueprintDTO, UpdateBlueprintFileRuleDTO, UpdateBlueprintParameterRuleDTO, UpdateBlueprintRunConfigurationDTO, UpdateBlueprintUserDTO, UpdateEnvironmentDTO, UpdateNamespaceDTO, UserPermissions } from "@testament/core-service";
+import { Access, AddBlueprintAppDTO, AddBlueprintAssertionRuleDTO, AddBlueprintCorrelationRuleDTO, AddBlueprintFileRuleDTO, AddBlueprintParameterRuleDTO, AddBlueprintRunConfigurationDTO, AddBlueprintUserDTO, Application, AssertionRule, Blueprint, CorrelationRule, CorrelationRuleScope, CorrelationRuleType, CreateApplicationDTO, CreateBlueprintDTO, CreateEnvironmentDTO, CreateNamespaceDTO, Environment, FileRule, FileType, ModificationType, Namespace, ParameterRule, ParameterRuleType, RepositoryType, RunConfiguration, SimulationType, UpdateApplicationDTO, UpdateBlueprintAssertionRuleDTO, UpdateBlueprintCorrelationRuleDTO, UpdateBlueprintDTO, UpdateBlueprintFileRuleDTO, UpdateBlueprintParameterRuleDTO, UpdateBlueprintPermissionsDTO, UpdateBlueprintRunConfigurationDTO, UpdateBlueprintUserDTO, UpdateEnvironmentDTO, UpdateNamespaceDTO, UserPermissions } from "@testament/core-service";
 import { suite, test } from "@testdeck/mocha";
 import * as nock from "nock";
 import { createClient, TestamentClient } from "./client";
-import { HttpStatus } from "./http/http";
+import { HttpStatus, StatusError } from "./http/http";
 import { Page } from "./page";
 import { assert } from "./util/test.util";
 
@@ -11,6 +11,47 @@ export class TestamentClientTests {
 
     private host: string = "http://localhost:8081";
     private client: TestamentClient = createClient({ baseUrl: this.host });
+
+    @test
+    async testNonStatusError() {
+        nock(this.host)
+            .post("/api/namespaces")
+            .replyWithError("Some error");
+
+        try {
+            await this.client.createNamespace({ name: "Namespace 1" });
+        } catch(err) {
+            assert.strictEqual(err.message, "Some error");
+            return;
+        }
+        throw new Error("Expected an error to be thrown");
+    }
+
+    @test
+    async testStatusError() {
+        nock(this.host)
+            .post("/api/namespaces")
+            .reply(HttpStatus.CONFLICT, {
+                message: "Namespace already exists"
+            });
+
+        try {
+            await this.client.createNamespace({ name: "Namespace 1" });
+        } catch(err) {
+            assert.instanceOf(err, StatusError);
+            assert.deepEqual(err.response, {
+                status: HttpStatus.CONFLICT,
+                headers: {
+                    "content-type": "application/json"
+                },
+                body: {
+                    message: "Namespace already exists"
+                }
+            });
+            return;
+        }
+        throw new Error("Expected an error to be thrown");
+    }
 
     @test
     async testCreateNamespace() {
@@ -1177,6 +1218,37 @@ export class TestamentClientTests {
         
         assert.strictEqual(response.status, HttpStatus.CREATED);
         assert.deepEqual(response.body, userPermissions);
+    }
+
+    @test
+    async testUpdateBlueprintPermissions() {
+        const dto: UpdateBlueprintPermissionsDTO = {
+            all: {
+                access: Access.READ
+            },
+            namespace: {
+                access: Access.WRITE
+            }
+        };
+        
+        const permissions: UpdateBlueprintPermissionsDTO = {
+            all: {
+                access: Access.READ
+            },
+            namespace: {
+                access: Access.WRITE
+            }
+        };
+        
+        nock(this.host)
+            .patch("/api/blueprints/b1/permissions", dto as any)
+            .matchHeader("X-User-Id", "123")
+            .reply(HttpStatus.CREATED, permissions);
+
+        const response = await this.client.updateBlueprintPermissions("b1", dto, { headers: { "X-User-Id": "123" } });
+        
+        assert.strictEqual(response.status, HttpStatus.CREATED);
+        assert.deepEqual(response.body, permissions);
     }
 
     @test

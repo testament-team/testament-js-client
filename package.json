@@ -1,6 +1,6 @@
 {
   "name": "@testament/js-client",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Javascript client for Testament API",
   "author": "jlazarre95 <jlazarre95@gmail.com>",
   "license": "ISC",

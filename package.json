@@ -27,6 +27,7 @@
     "test": "mocha",
     "test:debug": "mocha --inspect-brk",
     "test:cov": "nyc mocha",
+    "open:cov": "open coverage/index.html",
     "prepare": "npm run build",
     "prepublishOnly": "npm test",
     "version": "git add -A",
@@ -51,7 +52,8 @@
       "**/*.spec.ts",
       "src/main.ts",
       "coverage",
-      "bin"
+      "bin",
+      "index.ts"
     ],
     "reporter": [
       "text",
